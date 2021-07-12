@@ -2,6 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
+Vagrantfile
+*.box
+.vagrant
+.idea
 
 # C extensions
 *.so
