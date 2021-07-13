@@ -36,7 +36,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
+    # third_party
     'rest_framework',
+
+    # project apps
+    'accounts',
 ]
 
 REST_FRAMEWORK = {
