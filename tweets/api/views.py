@@ -2,6 +2,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
+from newsfeeds.services import NewsFeedService
 from tweets.api.serializers import TweetSerializer, TweetCreateSerializer
 from tweets.models import Tweet
 
@@ -38,6 +39,7 @@ class TweetViewSet(viewsets.GenericViewSet,
         ).order_by('-created_at')
         serializer = TweetSerializer(tweets, many=True)
         # 一般来说 json 格式的 response 默认都要用 hash 的格式
+        # 一般来说 json 格式的 response 默认都要用 hash 的格式
         # 而不能用 list 的格式(约定俗称)
         return Response({'tweets': serializer.data})
 
@@ -56,4 +58,5 @@ class TweetViewSet(viewsets.GenericViewSet,
                 'errors': serializer.errors,
             }, status=400)
         tweet = serializer.save()
+        NewsFeedService.fanout_to_followers(tweet)
         return Response(TweetSerializer(tweet).data, status=201)
