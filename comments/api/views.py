@@ -9,6 +9,8 @@ from comments.api.serializers import (
     CommentSerializerForUpdate,
 )
 from comments.models import Comment
+from tweets.api.serializers import TweetSerializerWithComments
+from utils.decorators import required_params
 
 
 class CommentViewSet(viewsets.GenericViewSet):
@@ -18,24 +20,19 @@ class CommentViewSet(viewsets.GenericViewSet):
     """
     serializer_class = CommentSerializerForCreate
     queryset = Comment.objects.all()
-    filterset_fields = ('tweet_id', )
+    filterset_fields = ('tweet_id',)
 
     def get_permissions(self):
         # 注意要加用 AllowAny() / IsAuthenticated() 实例化出对象
         # 而不是 AllowAny / IsAuthenticated 这样只是一个类名
-        if self.action == 'create':
+        if self.action in ['create', 'retrieve']:
             return [IsAuthenticated()]
         if self.action in ['destroy', 'update']:
             return [IsAuthenticated(), IsObjectOwner()]
         return [AllowAny()]
 
+    @required_params(params=['tweet_id'])
     def list(self, request, *args, **kwargs):
-        if 'tweet_id' not in request.query_params:
-            return Response({
-                'message': 'missing tweet_id in request',
-                'success': False,
-            }, status=status.HTTP_400_BAD_REQUEST)
-
         queryset = self.get_queryset()
         comments = self.filter_queryset(queryset).order_by('created_at')
         serializer = CommentSerializer(comments, many=True)
@@ -93,3 +90,9 @@ class CommentViewSet(viewsets.GenericViewSet):
         # DRF 里默认 destroy 返回的是 status code = 204 no content
         # 这里 return 了 success=True 更直观的让前端去做判断，所以 return 200 更合适
         return Response({'success': True}, status=status.HTTP_200_OK)
+
+    def retrieve(self, request, *args, **kwargs):
+        # <HOMEWORK 1> 通过某个 query 参数 with_all_comments 来决定是否需要带上所有 comments
+        # <HOMEWORK 2> 通过某个 query 参数 with_preview_comments 来决定是否需要带上前三条 comments
+        tweet = self.get_object()
+        return Response(TweetSerializerWithComments(tweet).data)
