@@ -8,7 +8,7 @@ from likes.models import Like
 from tweets.models import Tweet
 
 
-class LikeSerialzer(serializers.ModelSerializer):
+class LikeSerializer(serializers.ModelSerializer):
     user = UserSerializer()
 
     class Meta:
