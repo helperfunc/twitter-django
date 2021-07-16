@@ -4,7 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from likes.api.serializers import (
-    LikeSerialzer,
+    LikeSerializer,
     LikeSerializerForCancel,
     LikeSerializerForCreate,
 )
@@ -30,7 +30,7 @@ class LikeViewSet(viewsets.GenericViewSet):
             }, status=status.HTTP_400_BAD_REQUEST)
         instance = serializer.save()
         return Response(
-            LikeSerialzer(instance).data,
+            LikeSerializer(instance).data,
             status=status.HTTP_201_CREATED,
         )
 

@@ -9,7 +9,6 @@ from comments.api.serializers import (
     CommentSerializerForUpdate,
 )
 from comments.models import Comment
-from tweets.api.serializers import TweetSerializerWithComments
 from utils.decorators import required_params
 
 
@@ -35,7 +34,11 @@ class CommentViewSet(viewsets.GenericViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         comments = self.filter_queryset(queryset).order_by('created_at')
-        serializer = CommentSerializer(comments, many=True)
+        serializer = CommentSerializer(
+            comments,
+            context={'request': request},
+            many=True,
+        )
         return Response(
             {'comments': serializer.data},
             status=status.HTTP_200_OK,
@@ -60,7 +63,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         # save 方法会触发 serializer 里的 create 方法，点进 save 的具体实现里可以看到
         comment = serializer.save()
         return Response(
-            CommentSerializer(comment).data,
+            CommentSerializer(comment, context={'request': request}).data,
             status=status.HTTP_201_CREATED,
         )
 
@@ -80,7 +83,7 @@ class CommentViewSet(viewsets.GenericViewSet):
         # save 是根据 instance 参数有没有传来决定是触发 create 还是 update.
         comment = serializer.save()
         return Response(
-            CommentSerializer(comment).data,
+            CommentSerializer(comment, context={'request': request}).data,
             status=status.HTTP_200_OK,
         )
 
@@ -90,9 +93,3 @@ class CommentViewSet(viewsets.GenericViewSet):
         # DRF 里默认 destroy 返回的是 status code = 204 no content
         # 这里 return 了 success=True 更直观的让前端去做判断，所以 return 200 更合适
         return Response({'success': True}, status=status.HTTP_200_OK)
-
-    def retrieve(self, request, *args, **kwargs):
-        # <HOMEWORK 1> 通过某个 query 参数 with_all_comments 来决定是否需要带上所有 comments
-        # <HOMEWORK 2> 通过某个 query 参数 with_preview_comments 来决定是否需要带上前三条 comments
-        tweet = self.get_object()
-        return Response(TweetSerializerWithComments(tweet).data)
