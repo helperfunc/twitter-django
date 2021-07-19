@@ -1,8 +1,10 @@
-from rest_framework.response import Response
-from rest_framework import status
 from functools import wraps
 
-def required_params(request_attr='query_params', params=None):
+from rest_framework import status
+from rest_framework.response import Response
+
+
+def required_params(method='GET', params=None):
     """
     当我们使用 @required_params(params=['some_params']) 的时候
     这个 required_params 函数应该需要返回一个 decorator 函数，这个 decorator 函数的参数
@@ -18,9 +20,13 @@ def required_params(request_attr='query_params', params=None):
         decorator 函数通过 wraps 来将 view_func 里的参数解析出来传递给 _wrapped_view
         这里的 instance 参数其实就是在 view_func 里的 self
         """
+
         @wraps(view_func)
         def _wrapped_view(instance, request, *args, **kwargs):
-            data = getattr(request, request_attr)
+            if method.lower() == 'get':
+                data = request.query_params
+            else:
+                data = request.data
             missing_params = [
                 param
                 for param in params
@@ -34,5 +40,7 @@ def required_params(request_attr='query_params', params=None):
                 }, status=status.HTTP_400_BAD_REQUEST)
             # 做完检测之后，再去调用被 @required_params 包裹起来的 view_func
             return view_func(instance, request, *args, **kwargs)
+
         return _wrapped_view
+
     return decorator
