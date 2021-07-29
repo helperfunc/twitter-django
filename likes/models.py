@@ -3,6 +3,8 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+from accounts.services import UserService
+
 
 class Like(models.Model):
     #  https://docs.djangoproject.com/en/3.1/ref/contrib/contenttypes/#generic-relations
@@ -33,3 +35,7 @@ class Like(models.Model):
             self.content_type,
             self.object_id,
         )
+
+    @property
+    def cached_user(self):
+        return UserService.get_user_through_cache(self.user_id)
