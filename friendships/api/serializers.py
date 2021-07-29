@@ -12,10 +12,8 @@ class FollowingUserIdSetMixin:
     def following_user_id_set(self: serializers.ModelSerializer):
         if self.context['request'].user.is_anonymous:
             return {}
-
         if hasattr(self, '_cached_following_user_id_set'):
             return self._cached_following_user_id_set
-
         user_id_set = FriendshipService.get_following_user_id_set(
             self.context['request'].user.id,
         )
@@ -23,7 +21,7 @@ class FollowingUserIdSetMixin:
         return user_id_set
 
 
-class FriedshipSerializerForCreate(serializers.ModelSerializer):
+class FriendshipSerializerForCreate(serializers.ModelSerializer):
     from_user_id = serializers.IntegerField()
     to_user_id = serializers.IntegerField()
 

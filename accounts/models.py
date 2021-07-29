@@ -1,5 +1,9 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
+from django.db.models.signals import post_save, pre_delete
+
+from accounts.listeners import user_changed, profile_changed
+
 
 class UserProfile(models.Model):
     # One2One field 会创建一个 unique index, 确保不会有多个 UserProfile 指向同一个 User
@@ -13,9 +17,9 @@ class UserProfile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-
     def __str__(self):
         return '{} {}'.format(self.user, self.nickname)
+
 
 '''
 定义一个 profile 的 property 方法，植入到 User 这个 model 里
@@ -24,15 +28,28 @@ class UserProfile(models.Model):
 这种写法实际上是利用 Python 的灵活性进行 hack 的方法，这样会方便我们通过 user 快速
 访问到对应的 profile 信息。
 '''
+
+
 def get_profile(user):
+    # import 放在函数里面避免循环依赖
+    from accounts.services import UserService
+
     if hasattr(user, '_cached_user_profile'):
         return getattr(user, '_cached_user_profile')
 
-    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile = UserService.get_profile_through_cache(user.id)
     # 使用 user 对应的属性进行缓存 (cache), 避免多次调用同一个 user 的 profile 时
     # 重复的对数据库进行查询
     setattr(user, '_cached_user_profile', profile)
     return profile
 
+
 # 给 User Model 增加了一个 profile 的 property 方法用于快捷访问
 User.profile = property(get_profile)
+
+# hook up with listeners to invalidate cache
+pre_delete.connect(user_changed, sender=User)
+post_save.connect(user_changed, sender=User)
+
+pre_delete.connect(profile_changed, sender=UserProfile)
+post_save.connect(profile_changed, sender=UserProfile)
