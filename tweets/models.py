@@ -2,9 +2,10 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+from accounts.services import UserService
 from likes.models import Like
-from utils.time_helpers import utc_now
 from tweets.constants import TweetPhotoStatus, TWEET_PHOTO_STATUS_CHOICES
+from utils.time_helpers import utc_now
 
 
 # Create your models here.
@@ -32,6 +33,11 @@ class Tweet(models.Model):
             content_type=ContentType.objects.get_for_model(Tweet),
             object_id=self.id,
         ).order_by('-created_at')
+
+    @property
+    def cached_user(self):
+        return UserService.get_user_through_cache(self.user_id)
+
 
 class TweetPhoto(models.Model):
     # 图片在哪个 Tweet 下面
