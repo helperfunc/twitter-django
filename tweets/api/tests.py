@@ -4,6 +4,8 @@ from rest_framework.test import APIClient
 from testing.testcases import TestCase
 from tweets.models import Tweet, TweetPhoto
 from utils.paginations import EndlessPagination
+from utils.redis_client import RedisClient
+from utils.redis_serializers import DjangoModelSerializer
 
 # 注意哟啊加 '/' 结尾，要不然会产生 301 redirect
 TWEET_LIST_API = '/api/tweets/'
