@@ -33,6 +33,8 @@ class TweetViewSet(viewsets.GenericViewSet):
         重载 list 方法，不列出所有 tweets，必须要求指定 user_id 作为筛选条件
         """
         user_id = request.query_params['user_id']
+        tweets = Tweet.objects.filter(user_id=user_id).prefetch_related('user')
+
         cached_tweets = TweetService.get_cached_tweets(user_id)
         page = self.paginator.paginate_cached_list(cached_tweets, request)
         if page is None:
