@@ -12,7 +12,8 @@ from tweets.models import Tweet
 from tweets.services import TweetService
 from utils.decorators import required_params
 from utils.paginations import EndlessPagination
-
+from django.utils.decorators import method_decorator
+from ratelimit.decorators import ratelimit
 
 class TweetViewSet(viewsets.GenericViewSet):
     """
@@ -56,6 +57,8 @@ class TweetViewSet(viewsets.GenericViewSet):
         # 而不能用 list 的格式(约定俗称)
         return self.get_paginated_response(serializer.data)
 
+    @method_decorator(ratelimit(key='user', rate='1/s', method='POST', block=True))
+    @method_decorator(ratelimit(key='user', rate='5/m', method='POST', block=True))
     def create(self, request, *args, **kwargs):
         """
         重载 create 方法，因为需要默认用当前登录用户作为 tweet.user
@@ -75,6 +78,7 @@ class TweetViewSet(viewsets.GenericViewSet):
         serializer = TweetSerializer(tweet, context={'request': request})
         return Response(serializer.data, status=201)
 
+    @method_decorator(ratelimit(key='user_or_ip', rate='5/s', method='GET', block=True))
     def retrieve(self, request, *args, **kwargs):
         # <HOMEWORK 1> 通过某个 query 参数 with_all_comments 来决定是否需要带上所有 comments
         # <HOMEWORK 2> 通过某个 query 参数 with_preview_comments 来决定是否需要带上前三条 comments
