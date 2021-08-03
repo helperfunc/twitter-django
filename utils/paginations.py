@@ -31,10 +31,10 @@ class EndlessPagination(BasePagination):
             for index, obj in enumerate(reverse_ordered_list):
                 if obj.created_at < created_at__lt:
                     break
-                else:
-                    # 没找到任何满足条件的 objects，返回空数据
-                    # 注意这个 else 对应的是 for，参见 python 的 for else 语法
-                    reverse_ordered_list = []
+            else:
+                # 没找到任何满足条件的 objects, 返回空数组
+                # 注意这个 else 对应的是 for，参见 python 的 for else 语法
+                reverse_ordered_list = []
         self.has_next_page = len(reverse_ordered_list) > index + self.page_size
         return reverse_ordered_list[index: index + self.page_size]
 
