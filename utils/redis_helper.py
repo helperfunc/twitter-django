@@ -31,6 +31,7 @@ class RedisHelper:
                 deserialized_obj = DjangoModelSerializer.deserialize(serialized_data)
                 objects.append(deserialized_obj)
             return objects
+
         cls._load_objects_to_cache(key, queryset)
 
         # 转换为 list 的原因是保持返回类型的统一，因为存在 redis 里的数据是 list 的形式
