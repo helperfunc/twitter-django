@@ -7,6 +7,11 @@ Vagrantfile
 .vagrant
 .idea
 media/
+hbase-2.4.5/
+jdk-8u301-linux-x64.tar.gz
+hbase-2.4.5-bin.tar.gz
+thrift-0.14.2.tar.gz
+thrift-0.14.2/
 
 # C extensions
 *.so
