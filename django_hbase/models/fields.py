@@ -5,7 +5,7 @@ class HBaseField:
         self.reverse = reverse
         self.column_family = column_family
         # <HOMEWORK>
-        # 增加 is_required 属性，默认为 true 和 default 属性，默认 None.
+        # 增加 is_required 属性，默认为 true 和 default 属性，默认 None。
         # 并在 HbaseModel 中做相应的处理，抛出相应的异常信息
 
 
