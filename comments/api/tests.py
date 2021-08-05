@@ -14,6 +14,7 @@ class CommentApiTests(TestCase):
 
     def setUp(self):
         self.clear_cache()
+        super(CommentApiTests, self).setUp()
         self.user1 = self.create_user('user1')
         self.user1_client = APIClient()
         self.user1_client.force_authenticate(self.user1)
