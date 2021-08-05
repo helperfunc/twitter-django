@@ -15,6 +15,7 @@ class AccountApiTests(TestCase):
 
     def setUp(self):
         self.clear_cache()
+        super(AccountApiTests, self).setUp()
         # 这个函数会在每个 test function 执行的时候被执行
         self.client = APIClient()
         self.user = self.create_user(

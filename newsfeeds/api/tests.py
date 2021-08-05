@@ -16,6 +16,7 @@ class NewsFeedApiTests(TestCase):
 
     def setUp(self):
         self.clear_cache()
+        super(NewsFeedApiTests, self).setUp()
         self.user1 = self.create_user('user1')
         self.user1_client = APIClient()
         self.user1_client.force_authenticate(self.user1)
@@ -27,11 +28,11 @@ class NewsFeedApiTests(TestCase):
         # create followings and followers for user2
         for i in range(2):
             follower = self.create_user('user2_follower{}'.format(i))
-            Friendship.objects.create(from_user=follower, to_user=self.user2)
+            self.create_friendship(from_user=follower, to_user=self.user2)
 
         for i in range(3):
             following = self.create_user('user2_following{}'.format(i))
-            Friendship.objects.create(from_user=self.user2, to_user=following)
+            self.create_friendship(from_user=self.user2, to_user=following)
 
     def test_user_cache(self):
         profile = self.user2.profile
