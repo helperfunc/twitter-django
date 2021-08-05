@@ -3,6 +3,11 @@ from django.core.cache import caches
 
 from friendships.models import Friendship
 from twitter.cache import FOLLOWINGS_PATTERN
+from accounts.services import UserService
+from gatekeeper.models import GateKeeper
+from friendships.hbase_models import HBaseFollowing, HBaseFollower
+
+import time
 
 cache = caches['testing'] if settings.TESTING else caches['default']
 
@@ -62,3 +67,28 @@ class FriendshipService(object):
     def invalidate_following_cache(cls, from_user_id):
         key = FOLLOWINGS_PATTERN.format(user_id=from_user_id)
         cache.delete(key)
+
+    @classmethod
+    def follow(cls, from_user_id, to_user_id):
+        if from_user_id == to_user_id:
+            return None
+
+        if not GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            # create data in mysql
+            return Friendship.objects.create(
+                from_user_id=from_user_id,
+                to_user_id=to_user_id,
+            )
+
+        # create data in hbase
+        now = int(time.time() * 1000000)
+        HBaseFollower.create(
+            from_user_id=from_user_id,
+            to_user_id=to_user_id,
+            created_at=now,
+        )
+        return HBaseFollowing.create(
+            from_user_id=from_user_id,
+            to_user_id=to_user_id,
+            created_at=now,
+        )
