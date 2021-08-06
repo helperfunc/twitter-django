@@ -1,6 +1,5 @@
 from rest_framework.test import APIClient
 
-from friendships.models import Friendship
 from friendships.services import FriendshipService
 from testing.testcases import TestCase
 from utils.paginations import EndlessPagination
@@ -81,7 +80,6 @@ class FriendshipApiTests(TestCase):
         after_count = FriendshipService.get_following_count(self.user2.id)
         self.assertEqual(after_count, before_count - 1)
         # 未 follow 的情况下 unfollow 静默处理
-        count = Friendship.objects.count()
         before_count = FriendshipService.get_following_count(self.user2.id)
         response = self.user2_client.post(url)
         self.assertEqual(response.status_code, 200)

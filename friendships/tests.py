@@ -1,8 +1,7 @@
 import time
 
 from django_hbase.models import EmptyColumnError, BadRowKeyError
-from friendships.hbase_models import HBaseFollowing, HBaseFollower
-from friendships.models import Friendship
+from friendships.models import HBaseFollowing, HBaseFollower
 from friendships.services import FriendshipService
 from testing.testcases import TestCase
 
@@ -18,12 +17,12 @@ class FriendshipServiceTests(TestCase):
         user1 = self.create_user('user_1')
         user2 = self.create_user('user_2')
         for to_user in [user1, user2, self.user2]:
-            Friendship.objects.create(from_user=self.user1, to_user=to_user)
+            self.create_friendship(from_user=self.user1, to_user=to_user)
 
         user_id_set = FriendshipService.get_following_user_id_set(self.user1.id)
         self.assertEqual(user_id_set, {user1.id, user2.id, self.user2.id})
 
-        Friendship.objects.filter(from_user=self.user1, to_user=self.user2).delete()
+        FriendshipService.unfollow(self.user1.id, self.user2.id)
         user_id_set = FriendshipService.get_following_user_id_set(self.user1.id)
         self.assertEqual(user_id_set, {user1.id, user2.id})
 
@@ -87,7 +86,6 @@ class HBaseTests(TestCase):
             exception_raised = True
             self.assertEqual(str(e), 'created_at is missing in row key')
         self.assertEqual(exception_raised, True)
-
 
     def test_filter(self):
         HBaseFollowing.create(from_user_id=1, to_user_id=2, created_at=self.ts_now)
