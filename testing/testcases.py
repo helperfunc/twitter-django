@@ -11,6 +11,7 @@ from likes.models import Like
 from newsfeeds.models import NewsFeed
 from tweets.models import Tweet
 from utils.redis_client import RedisClient
+from friendships.services import FriendshipService
 
 
 class TestCase(DjangoTestCase):
@@ -53,7 +54,7 @@ class TestCase(DjangoTestCase):
         return User.objects.create_user(username, email, password)
 
     def create_friendship(self, from_user, to_user):
-        return Friendship.objects.create(from_user=from_user, to_user=to_user)
+        return FriendshipService.follow(from_user.id, to_user.id)
 
     def create_tweet(self, user, content=None):
         if content is None:
