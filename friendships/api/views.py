@@ -11,7 +11,7 @@ from friendships.api.serializers import (
     FollowingSerializer,
     FriendshipSerializerForCreate,
 )
-from friendships.models import Friendship, HBaseFollower, HBaseFollowing
+from friendships.models import HBaseFollowing, HBaseFollower, Friendship
 from friendships.services import FriendshipService
 from gatekeeper.models import GateKeeper
 from utils.paginations import EndlessPagination
@@ -25,7 +25,6 @@ class FriendshipViewSet(viewsets.GenericViewSet):
     # queryset.filter(pk=1) 查询一下这个 object 在不在
     queryset = User.objects.all()
     # 一般来说，不同的 views 所需要的 pagination 规则肯定是不同的，因此一般都需要自定义
-    # pagination_class = FriendshipPagination
     pagination_class = EndlessPagination
 
     @action(methods=['GET'], detail=True, permission_classes=[AllowAny])

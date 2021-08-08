@@ -9,7 +9,7 @@ from testing.testcases import TestCase
 class FriendshipServiceTests(TestCase):
 
     def setUp(self):
-        self.clear_cache()
+        super(FriendshipServiceTests, self).setUp()
         self.user1 = self.create_user('user1')
         self.user2 = self.create_user('user2')
 

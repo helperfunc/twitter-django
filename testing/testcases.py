@@ -6,12 +6,12 @@ from rest_framework.test import APIClient
 
 from comments.models import Comment
 from django_hbase.models import HBaseModel
-from friendships.models import Friendship
+from friendships.services import FriendshipService
+from gatekeeper.models import GateKeeper
 from likes.models import Like
-from newsfeeds.models import NewsFeed
+from newsfeeds.services import NewsFeedService
 from tweets.models import Tweet
 from utils.redis_client import RedisClient
-from friendships.services import FriendshipService
 
 
 class TestCase(DjangoTestCase):
@@ -36,6 +36,8 @@ class TestCase(DjangoTestCase):
     def clear_cache(self):
         RedisClient.clear()
         caches['testing'].clear()
+        GateKeeper.turn_on('switch_newsfeed_to_hbase')
+        GateKeeper.turn_on('switch_friendship_to_hbase')
 
     @property
     def anonymous_client(self):
@@ -62,7 +64,11 @@ class TestCase(DjangoTestCase):
         return Tweet.objects.create(user=user, content=content)
 
     def create_newsfeed(self, user, tweet):
-        return NewsFeed.objects.create(user=user, tweet=tweet)
+        if GateKeeper.is_switch_on('switch_newsfeed_to_hbase'):
+            created_at = tweet.timestamp
+        else:
+            created_at = tweet.created_at
+        return NewsFeedService.create(user_id=user.id, tweet_id=tweet.id, created_at=created_at)
 
     def create_comment(self, user, tweet, content=None):
         if content is None:
