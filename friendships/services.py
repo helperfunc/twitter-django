@@ -27,7 +27,6 @@ class FriendshipService(object):
             friendships = Friendship.objects.filter(from_user_id=from_user_id)
         else:
             friendships = HBaseFollowing.filter(prefix=(from_user_id, None))
-
         user_id_set = set([
             fs.to_user_id
             for fs in friendships
@@ -38,6 +37,28 @@ class FriendshipService(object):
     def invalidate_following_cache(cls, from_user_id):
         key = FOLLOWINGS_PATTERN.format(user_id=from_user_id)
         cache.delete(key)
+
+    @classmethod
+    def get_follow_instance(cls, from_user_id, to_user_id):
+        followings = HBaseFollowing.filter(prefix=(from_user_id, None))
+        for follow in followings:
+            if follow.to_user_id == to_user_id:
+                return follow
+        return None
+
+    @classmethod
+    def has_followed(cls, from_user_id, to_user_id):
+        if from_user_id == to_user_id:
+            return False
+
+        if not GateKeeper.is_switch_on('switch_friendship_to_hbase'):
+            return Friendship.objects.filter(
+                from_user_id=from_user_id,
+                to_user_id=to_user_id,
+            ).exists()
+
+        instance = cls.get_follow_instance(from_user_id, to_user_id)
+        return instance is not None
 
     @classmethod
     def follow(cls, from_user_id, to_user_id):
@@ -63,28 +84,6 @@ class FriendshipService(object):
             to_user_id=to_user_id,
             created_at=now,
         )
-
-    @classmethod
-    def get_follow_instance(cls, from_user_id, to_user_id):
-        followings = HBaseFollowing.filter(prefix=(from_user_id, None))
-        for follow in followings:
-            if follow.to_user_id == to_user_id:
-                return follow
-        return None
-
-    @classmethod
-    def has_followed(cls, from_user_id, to_user_id):
-        if from_user_id == to_user_id:
-            return False
-
-        if not GateKeeper.is_switch_on('switch_friendship_to_hbase'):
-            return Friendship.objects.filter(
-                from_user_id=from_user_id,
-                to_user_id=to_user_id,
-            ).exists()
-
-        instance = cls.get_follow_instance(from_user_id, to_user_id)
-        return instance is not None
 
     @classmethod
     def unfollow(cls, from_user_id, to_user_id):

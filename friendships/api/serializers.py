@@ -21,7 +21,7 @@ class BaseFriendshipSerializer(serializers.Serializer):
     def get_user_id(self, obj):
         raise NotImplementedError
 
-    def _get_following_user_id_set(self: serializers.ModelSerializer):
+    def _get_following_user_id_set(self):
         if self.context['request'].user.is_anonymous:
             return {}
         if hasattr(self, '_cached_following_user_id_set'):
@@ -61,7 +61,7 @@ class FriendshipSerializerForCreate(serializers.ModelSerializer):
     def create(self, validated_data):
         from_user_id = validated_data['from_user_id']
         to_user_id = validated_data['to_user_id']
-        return Friendship.objects.create(
+        return FriendshipService.follow(
             from_user_id=from_user_id,
             to_user_id=to_user_id,
         )
