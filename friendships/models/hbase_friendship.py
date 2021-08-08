@@ -35,5 +35,5 @@ class HBaseFollower(models.HBaseModel):
     from_user_id = models.IntegerField(column_family='cf')
 
     class Meta:
-        row_key = ('to_user_id', 'created_at')
         table_name = 'twitter_followers'
+        row_key = ('to_user_id', 'created_at')
