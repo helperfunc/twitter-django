@@ -66,7 +66,7 @@ $ python --version
 $ python -m django --version
 ```
 
-###4. post-boot configuration of the virtual machine
+### 4. post-boot configuration of the virtual machine
 #### 4.1 Allow remote login
 ```
 $ sudo vim /etc/ssh/sshd_config
@@ -149,8 +149,8 @@ javac -version
 https://www.apache.org/dyn/closer.lua/hbase/
 
 ```
-$ tar xzvf hbase-2.3.4-bin.tar.gz
-$ cd hbase-2.3.4
+$ tar xzvf hbase-2.4.5-bin.tar.gz
+$ cd hbase-2.4.5
 ```
 
 Setting `JAVA_HOME` in `conf/hbase-env.sh`  
