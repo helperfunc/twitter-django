@@ -18,7 +18,11 @@ class EndlessPagination(BasePagination):
 
     def paginate_ordered_list(self, reverse_ordered_list, request):
         if 'created_at__gt' in request.query_params:
-            created_at__gt = parser.isoparse(request.query_params['created_at__gt'])
+            # 兼容 iso 格式和 int 格式的时间戳
+            try:
+                created_at__gt = parser.isoparse(request.query_params['created_at__gt'])
+            except ValueError:
+                created_at__gt = int(request.query_params['created_at__gt'])
             objects = []
             for obj in reverse_ordered_list:
                 if obj.created_at > created_at__gt:
@@ -30,7 +34,11 @@ class EndlessPagination(BasePagination):
 
         index = 0
         if 'created_at__lt' in request.query_params:
-            created_at__lt = parser.isoparse(request.query_params['created_at__lt'])
+            # 兼容 iso 格式和 int 格式的时间戳
+            try:
+                created_at__lt = parser.isoparse(request.query_params['created_at__lt'])
+            except ValueError:
+                created_at__lt = int(request.query_params['created_at__lt'])
             for index, obj in enumerate(reverse_ordered_list):
                 if obj.created_at < created_at__lt:
                     break
@@ -68,13 +76,12 @@ class EndlessPagination(BasePagination):
     def paginate_hbase(self, hb_model, row_key_prefix, request):
         if 'created_at__gt' in request.query_params:
             # created_at__gt 用于下拉刷新的时候加载最新的内容进来
-            # 为了简便起见，下来刷新不做翻页机制，直接加载所有更新的数据
-            # 因为如果数据很久没有更新的话，不会采用下来刷新的方式进行更新，而是重新加载最新的数据
+            # 为了简便起见，下拉刷新不做翻页机制，直接加载所有更新的数据
+            # 因为如果数据很久没有更新的话，不会采用下拉刷新的方式进行更新，而是重新加载最新的数据
             created_at__gt = request.query_params['created_at__gt']
             start = (*row_key_prefix, created_at__gt)
             stop = (*row_key_prefix, MAX_TIMESTAMP)
             objects = hb_model.filter(start=start, stop=stop)
-            # [1, 2, 3, 4, 5, 7]
             if len(objects) and objects[0].created_at == int(created_at__gt):
                 objects = objects[:0:-1]
             else:
@@ -83,16 +90,15 @@ class EndlessPagination(BasePagination):
             return objects
 
         if 'created_at__lt' in request.query_params:
-            # created_at__lt 用于向上滚屏（往下翻页）的收加载下一页的数据
-            # 寻找 timestamp < created_at__lt 的 objects 里按照 tiemstamp 倒序的前 page_size + 1 个 objects
-            # 比如目前的 tiemstamp 列表是 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] 如果 created_at__lt=5, page_size=2
+            # created_at__lt 用于向上滚屏（往下翻页）的时候加载下一页的数据
+            # 寻找 timestamp < created_at__lt 的 objects 里按照 timestamp 倒序的前 page_size + 1 个 objects
+            # 比如目前的 timestamp 列表是 [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] 如果 created_at__lt=5, page_size = 2
             # 则应该返回 [4, 3, 2]，多返回一个 object 的原因是为了判断是否还有下一页从而减少一次空加载。
-            # 由于 hbase 只支持 <= 的查询而不支持 <，因此我们还需要再多取一个 item 保证 < 的 item 有 page_size + 1 个
+            # 由于 hbase 只支持 <= 的查询而不支持 <, 因此我们还需要再多取一个 item 保证 < 的 item 有 page_size + 1 个
             created_at__lt = request.query_params['created_at__lt']
             start = (*row_key_prefix, created_at__lt)
             stop = (*row_key_prefix, None)
             objects = hb_model.filter(start=start, stop=stop, limit=self.page_size + 2, reverse=True)
-            # [1,2,3,4,5]
             if len(objects) and objects[0].created_at == int(created_at__lt):
                 objects = objects[1:]
             if len(objects) > self.page_size:
@@ -114,7 +120,7 @@ class EndlessPagination(BasePagination):
 
     def paginate_cached_list(self, cached_list, request):
         paginated_list = self.paginate_ordered_list(cached_list, request)
-        # 如果是上翻页， paginated_list 里所有的最新的数据，直接返回
+        # 如果是上翻页，paginated_list 里是所有的最新的数据，直接返回
         if 'created_at__gt' in request.query_params:
             return paginated_list
         # 如果还有下一页，说明 cached_list 里的数据还没有取完，也直接返回
