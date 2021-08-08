@@ -48,6 +48,7 @@ mysqlclient==2.0.3
 netifaces==0.10.4
 packaging==21.0
 PAM==0.4.2
+pexpect==4.2.1
 ply==3.11
 prompt-toolkit==3.0.19
 protobuf==3.17.3
@@ -55,11 +56,11 @@ pyasn1==0.4.2
 pyasn1-modules==0.2.1
 pycparser==2.20
 pycrypto==2.6.1
-pygobject==3.26.1
+PyGObject==3.26.1
 pyOpenSSL==17.5.0
 pyparsing==2.4.7
 pyserial==3.4
-python-apt==1.6.4
+python-apt==1.6.5+ubuntu0.6
 python-dateutil==2.8.2
 python-debian==0.1.32
 python-memcached==1.59
@@ -73,6 +74,7 @@ rsa==4.7.2
 SecretStorage==2.3.1
 service-identity==16.0.0
 six==1.16.0
+sos==4.1
 sqlparse==0.4.1
 ssh-import-id==5.7
 swapper==1.1.2.post1
@@ -80,6 +82,7 @@ systemd-python==234
 thriftpy2==0.4.14
 Twisted==17.9.0
 typing-extensions==3.10.0.0
+ubuntu-advantage-tools==27.2
 ufw==0.36
 urllib3==1.22
 vine==5.0.0
