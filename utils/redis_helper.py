@@ -62,7 +62,7 @@ class RedisHelper:
             conn.lpush(key, serialized_data)
             conn.ltrim(key, 0, settings.REDIS_LIST_LENGTH_LIMIT - 1)
             return
-        
+
         # 如果 key 不存在，直接从数据库里 load
         # 就不走单个 push 的方式加到 cache 里了
         objects = lazy_load_objects(settings.REDIS_LIST_LENGTH_LIMIT)
