@@ -247,3 +247,39 @@ class LikeApiTests(TestCase):
         self.assertEqual(response.data['results'][0]['tweet']['likes_count'], 3)
         response = self.user2_client.get(newsfeed_url)
         self.assertEqual(response.data['results'][0]['tweet']['likes_count'], 3)
+
+    def test_likes_count_for_comment_with_cache(self):
+        tweet = self.create_tweet(self.user1)
+        comment = self.create_comment(self.user1, tweet)
+
+        # test comments list api
+        response = self.user2_client.get(COMMENT_LIST_API, {'tweet_id': tweet.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments'][0]['likes_count'], 0)
+        self.create_like(self.user2, comment)
+        response = self.user2_client.get(COMMENT_LIST_API, {'tweet_id': tweet.id})
+        self.assertEqual(response.data['comments'][0]['likes_count'], 1)
+        comment.refresh_from_db()
+        self.assertEqual(comment.like_count, 1)
+
+        # test tweet detail api
+        self.create_like(self.user1, comment)
+        url = TWEET_DETAIL_API.format(tweet.id)
+        response = self.user2_client(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments'][0]['likes_count'], 2)
+        comment.refresh_from_db()
+        self.assertEqual(comment.like_count, 2)
+
+        # user2 cancels like
+        data = {'content_type': 'comment', 'object_id': comment.id}
+        self.user_client.post(LIKE_BASE_URL + 'cancel/', data)
+        comment.refresh_from_db()
+        self.assertEqual(comment.likes_count, 1)
+        response = self.user2_client.get(COMMENT_LIST_API, {'tweet_id': tweet.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments'][0]['likes_count'], 1)
+        url = TWEET_DETAIL_API.format(tweet.id)
+        response = self.user2_client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data['comments'][0]['likes_count'], 1)

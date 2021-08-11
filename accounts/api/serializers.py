@@ -56,6 +56,10 @@ class SignupSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         # TODO <Homework> 增加验证 username 是不是只由给定的字符集合构成
+        if not data['username'].lower().isalnum():
+            raise exceptions.ValidationError({
+                'message': 'The username only contain alphabet and digit.'
+            })
         if User.objects.filter(username=data['username'].lower()).exists():
             raise exceptions.ValidationError({
                 'message': 'This username has been occupied.',

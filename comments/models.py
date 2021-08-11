@@ -20,6 +20,9 @@ class Comment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # new added field null = True, if only default=0, will scan all the table
+    likes_count = models.IntegerField(default=0, null=True)
+
     class Meta:
         # 有在某个 tweet 下排序所有 comments 的需求
         index_together = (('tweet', 'created_at'),)
@@ -41,7 +44,7 @@ class Comment(models.Model):
 
     @property
     def cached_user(self):
-        return MemcachedHelper.get_object_through_cache(self.user_id)
+        return MemcachedHelper.get_object_through_cache(User, self.user_id)
 
 
 post_save.connect(incr_comments_count, sender=Comment)
