@@ -13,6 +13,7 @@ hbase-2.4.5-bin.tar.gz
 thrift-0.14.2.tar.gz
 thrift-0.14.2/
 thrift/
+credential.json
 
 # C extensions
 *.so
