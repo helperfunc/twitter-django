@@ -373,3 +373,44 @@ Then set the project root and the path of `settings.py`
 Click Ok.
 
 Then we can run on Pycharm.
+
+
+### Appendix
+#### Fanout NewsFeeds
+```
+- tweets
+tweets.api.views.py
+  create():
+    NewsFeedService.fanout_to_followers(tweet)
+  
+  1 tweet对应多个 新鲜事，发推人的本身的时间线，关注发推人的时间线
+  fanout_newsfeeds_main_task.delay(tweet.id, tweet.timestamp, tweet.user_id)
+    @shared_task() # 用 celery 的 decorator，将下面的函数放到 celery 的队列中，进行异步的 fanout
+      获取 HBase 中的 followers 列表
+      fanout_newsfeeds_batch_task(tweet_id, created_at, follower_ids)
+        newsfeeds = NewsFeedService.batch_create(batch_params)
+        HBase
+          HBaseNewsFeed.batch_create() # hbase row_key = ('user_id', 'created_at')
+        Redis
+          push_newsfeed_to_cache() 
+    NewsFeed.objects.create()
+    把 newsfeeds 放到 redis 里，这样就存储到了磁盘里
+    RedisHelper.push_object(key, newsfeed, lazy_load_newsfeeds)
+      # 函数里是 redis 有的就直接返回，否则，用HBaseNewsFeed.filter() 获取 HBase 里的 newsfeeds，并将其放入到 Redis里
+```
+
+#### NoSQL
+```
+ Friendships: 保存到了 HBase 里。
+ NewsFeeds: 保存到了 HBase 和 Redis 里。
+ Tweets: 将整个 Tweets 表保存到 Redis里。
+ UserProfile: 保存到了 Memcached 里。
+```
+
+### Denormalization
+```
+comments: likes. listener，在 Model 里定义 incr_comments_count 和 decr_comments_count
+同时，会更新数据库和 redis 里的应用
+
+Tweets 只是增加了 likes_counts 和 comments_counts，并没有像 comments 一样定义函数来增加减少 counts。
+```
