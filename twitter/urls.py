@@ -39,7 +39,7 @@ router.register(r'api/profiles', UserProfileViewSet, basename='profiles')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    url(r'^', include('homepage.urls')),
+    #url(r'^', include('homepage.urls')),
     path('', include(router.urls)),
     path('api-auth', include('rest_framework.urls', namespace='rest_framework'))
 ]
